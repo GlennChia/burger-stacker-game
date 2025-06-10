@@ -4,7 +4,7 @@
 
 # 1. Introduction
 
-Exploratory repo that uses Amazon Q Developer CLI to generate a PyGame for a Burger Stacker Game based on a series of prompts used. This repo elaborates on Q Developer CLI, the prompts used, and how to play the game.
+Exploratory repo that uses Amazon Q Developer CLI to generate a PyGame for a Burger Stacker Game based on a series of prompts used. This repo elaborates on Q Developer CLI, the prompts used, and how to play the game. This repo is also linked to the blog post [Grilling Games: Build Burger Stacker with Amazon Q Developer CLI](https://community.aws/content/2yK6VCidazUoocEO92BhTWYr7mM)
 
 # 2. Pre-reqs
 
