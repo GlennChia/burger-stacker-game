@@ -252,36 +252,26 @@ class BurgerStacker:
                                                 y + 10 + key_bg_size//2))
             self.screen.blit(key_surf, key_rect)
 
-    def draw_submit_button(self):
+    def draw_submit_button(self, x, y, width, height=50):
         """Draw a submit button for mobile users."""
-        button_width = 120
-        button_height = 50
-        button_x = (SCREEN_WIDTH + 20) // 2
-        button_y = SCREEN_HEIGHT - 80
-
         # Check if mouse is hovering over this button
         mouse_pos = pygame.mouse.get_pos()
-        hover = (button_x <= mouse_pos[0] <= button_x + button_width and
-                 button_y <= mouse_pos[1] <= button_y + button_height)
+        hover = (x <= mouse_pos[0] <= x + width and
+                 y <= mouse_pos[1] <= y + height)
 
         # Draw the submit button
-        self.draw_modern_button(button_x, button_y, button_width, button_height,
+        self.draw_modern_button(x, y, width, height,
                               HIGHLIGHT_COLOR, "Submit", hover=hover)
 
-    def draw_undo_button(self):
+    def draw_undo_button(self, x, y, width, height=50):
         """Draw an undo button for users to remove layers."""
-        button_width = 100
-        button_height = 50
-        button_x = (SCREEN_WIDTH - 20) // 2 - button_width
-        button_y = SCREEN_HEIGHT - 80
-
         # Check if mouse is hovering over this button
         mouse_pos = pygame.mouse.get_pos()
-        hover = (button_x <= mouse_pos[0] <= button_x + button_width and
-                 button_y <= mouse_pos[1] <= button_y + button_height)
+        hover = (x <= mouse_pos[0] <= x + width and
+                 y <= mouse_pos[1] <= y + height)
 
         # Draw the undo button
-        self.draw_modern_button(button_x, button_y, button_width, button_height,
+        self.draw_modern_button(x, y, width, height,
                               ACCENT_COLOR, "Undo", hover=hover)
 
     def draw_color_buttons(self):
@@ -307,6 +297,9 @@ class BurgerStacker:
             self.draw_modern_button(x, y, button_width, button_height,
                                   COLOR_MAP[color_name], "",
                                   BUTTON_LABELS[color_name], hover)
+
+        # Return info needed for submit and undo buttons
+        return start_x, y, button_width, spacing
 
     def draw_panel(self, x, y, width, height, title=None):
         """Draw a modern UI panel with optional title."""
@@ -488,7 +481,7 @@ class BurgerStacker:
                     if len(self.player_stack) == len(self.target_stack):
                         self.check_match()
 
-            # Mouse click for color buttons
+            # Mouse click for buttons
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = pygame.mouse.get_pos()
 
@@ -511,10 +504,10 @@ class BurgerStacker:
                         self.player_stack.append(color_name)
 
                 # Check if submit button was clicked
-                submit_button_width = 120
-                submit_button_height = 50
-                submit_button_x = (SCREEN_WIDTH + 20) // 2
-                submit_button_y = SCREEN_HEIGHT - 80
+                submit_button_width = 100
+                submit_button_height = 80
+                submit_button_x = start_x + 4 * (button_width + spacing)
+                submit_button_y = y
 
                 if (submit_button_x <= mouse_pos[0] <= submit_button_x + submit_button_width and
                     submit_button_y <= mouse_pos[1] <= submit_button_y + submit_button_height):
@@ -523,9 +516,9 @@ class BurgerStacker:
 
                 # Check if undo button was clicked
                 undo_button_width = 100
-                undo_button_height = 50
-                undo_button_x = (SCREEN_WIDTH - 20) // 2 - undo_button_width
-                undo_button_y = SCREEN_HEIGHT - 80
+                undo_button_height = 80
+                undo_button_x = start_x - spacing - undo_button_width
+                undo_button_y = y
 
                 if (undo_button_x <= mouse_pos[0] <= undo_button_x + undo_button_width and
                     undo_button_y <= mouse_pos[1] <= undo_button_y + undo_button_height and
@@ -565,14 +558,18 @@ class BurgerStacker:
         # Draw player burger on right side
         self.draw_burger(self.player_stack, 3*SCREEN_WIDTH//4, SCREEN_HEIGHT//2, False)
 
-        # Draw color buttons
-        self.draw_color_buttons()
+        # Draw color buttons and get positioning info
+        start_x, button_y, button_width, spacing = self.draw_color_buttons()
 
         # Draw control buttons if not game over
         if not self.game_over:
-            # Always draw both buttons
-            self.draw_undo_button()
-            self.draw_submit_button()
+            # Draw undo button to the left of color buttons
+            undo_x = start_x - spacing - button_width
+            self.draw_undo_button(undo_x, button_y, button_width)
+
+            # Draw submit button to the right of color buttons
+            submit_x = start_x + 4 * (button_width + spacing)
+            self.draw_submit_button(submit_x, button_y, button_width)
 
         # Draw game over screen if game is over
         if self.game_over:
