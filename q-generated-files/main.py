@@ -10,6 +10,7 @@ import random
 import json
 import time
 import math
+import asyncio
 
 # Initialize pygame
 pygame.init()
@@ -26,7 +27,7 @@ TEXT_COLOR = (240, 240, 240)  # Light text
 ACCENT_COLOR = (75, 75, 75)  # Dark gray for UI elements
 HIGHLIGHT_COLOR = (50, 168, 82)  # Green highlight
 PANEL_COLOR = (30, 30, 30)  # Slightly lighter than background
-OVERLAY_COLOR = (0, 0, 0, 180)  # Semi-transparent black
+OVERLAY_COLOR = (0, 0, 0)  # Black for overlay (alpha applied separately)
 
 # Burger colors - More modern/saturated
 RED = (235, 64, 52)  # Tomato red
@@ -148,9 +149,11 @@ class BurgerStacker:
         shadow_offset = 4
 
         # Draw shadow for bottom bun
-        pygame.draw.ellipse(self.screen, (0, 0, 0, 100),
-                          (x - bun_width//2 + shadow_offset, y + shadow_offset,
-                           bun_width, layer_height))
+        shadow_surface = pygame.Surface((bun_width, layer_height))
+        shadow_surface.fill((0, 0, 0))
+        shadow_surface.set_alpha(100)
+        self.screen.blit(shadow_surface,
+                       (x - bun_width//2 + shadow_offset, y + shadow_offset))
 
         # Draw bottom bun with rounded corners
         pygame.draw.ellipse(self.screen, BUN_COLOR,
@@ -161,9 +164,11 @@ class BurgerStacker:
             layer_y = y - (i + 1) * layer_height
 
             # Draw shadow
-            pygame.draw.rect(self.screen, (0, 0, 0, 100),
-                           (x - bun_width//2 + shadow_offset, layer_y + shadow_offset,
-                            bun_width, layer_height))
+            shadow_surface = pygame.Surface((bun_width, layer_height))
+            shadow_surface.fill((0, 0, 0))
+            shadow_surface.set_alpha(100)
+            self.screen.blit(shadow_surface,
+                           (x - bun_width//2 + shadow_offset, layer_y + shadow_offset))
 
             # Draw layer with rounded corners
             pygame.draw.rect(self.screen, COLOR_MAP[color_name],
@@ -180,9 +185,11 @@ class BurgerStacker:
             top_bun_y = y - (len(stack) + 1) * layer_height
 
             # Draw shadow for top bun
-            pygame.draw.ellipse(self.screen, (0, 0, 0, 100),
-                              (x - bun_width//2 + shadow_offset, top_bun_y + shadow_offset,
-                               bun_width, layer_height))
+            shadow_surface = pygame.Surface((bun_width, layer_height))
+            shadow_surface.fill((0, 0, 0))
+            shadow_surface.set_alpha(100)
+            self.screen.blit(shadow_surface,
+                           (x - bun_width//2 + shadow_offset, top_bun_y + shadow_offset))
 
             # Draw top bun with rounded corners
             pygame.draw.ellipse(self.screen, BUN_COLOR,
@@ -210,9 +217,11 @@ class BurgerStacker:
         """Draw a modern-looking button with hover effects."""
         # Button shadow
         shadow_offset = 4
-        pygame.draw.rect(self.screen, (0, 0, 0, 100),
-                       (x + shadow_offset, y + shadow_offset, width, height),
-                       0, 15)
+        shadow_surface = pygame.Surface((width, height))
+        shadow_surface.fill((0, 0, 0))
+        shadow_surface.set_alpha(100)
+        self.screen.blit(shadow_surface,
+                       (x + shadow_offset, y + shadow_offset))
 
         # Button base
         button_color = self.lighten_color(color, 20) if hover else color
@@ -271,9 +280,11 @@ class BurgerStacker:
         """Draw a modern UI panel with optional title."""
         # Panel shadow
         shadow_offset = 6
-        pygame.draw.rect(self.screen, (0, 0, 0, 100),
-                       (x + shadow_offset, y + shadow_offset, width, height),
-                       0, 10)
+        shadow_surface = pygame.Surface((width, height))
+        shadow_surface.fill((0, 0, 0))
+        shadow_surface.set_alpha(100)
+        self.screen.blit(shadow_surface,
+                       (x + shadow_offset, y + shadow_offset))
 
         # Panel background
         pygame.draw.rect(self.screen, PANEL_COLOR, (x, y, width, height), 0, 10)
@@ -313,7 +324,7 @@ class BurgerStacker:
         high_score_rect = high_score_text.get_rect(right=SCREEN_WIDTH-40, centery=50)
         self.screen.blit(high_score_text, high_score_rect)
 
-        # Time bar
+        # Time text
         time_text = self.font_small.render(f"Time: {int(self.remaining_time)}s", True, TEXT_COLOR)
         time_rect = time_text.get_rect(center=(SCREEN_WIDTH//2, 35))
         self.screen.blit(time_text, time_rect)
@@ -358,8 +369,9 @@ class BurgerStacker:
     def draw_game_over(self):
         """Draw modern game over screen."""
         # Semi-transparent overlay
-        overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
-        overlay.fill(OVERLAY_COLOR)
+        overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+        overlay.fill((0, 0, 0))
+        overlay.set_alpha(180)
         self.screen.blit(overlay, (0, 0))
 
         # Game over panel
@@ -423,7 +435,7 @@ class BurgerStacker:
                     button_width = 200
                     button_height = 50
                     button_x = (SCREEN_WIDTH - button_width) // 2
-                    button_y = (SCREEN_HEIGHT + 140) // 2
+                    button_y = (SCREEN_HEIGHT - 300) // 2 + 220
 
                     if (button_x <= mouse_pos[0] <= button_x + button_width and
                         button_y <= mouse_pos[1] <= button_y + button_height):
@@ -506,19 +518,29 @@ class BurgerStacker:
 
         pygame.display.flip()
 
-    def run(self):
-        """Main game loop."""
-        self.start_time = time.time()
 
-        while self.running:
-            self.handle_events()
-            self.update()
-            self.draw()
-            self.clock.tick(FPS)
+# For PyBag compatibility
+async def main():
+    """Main entry point for PyBag."""
+    game = BurgerStacker()
+    game.start_time = time.time()
 
-        pygame.quit()
+    # Main game loop for PyBag
+    while game.running:
+        game.handle_events()
+        game.update()
+        game.draw()
+        await asyncio.sleep(0)  # Allow browser event loop to run
+        game.clock.tick(FPS)
+
+    pygame.quit()
 
 
 if __name__ == "__main__":
-    game = BurgerStacker()
-    game.run()
+    # Check if the script is running in a PyBag environment
+    if "asyncio" in dir() and hasattr(asyncio, "run"):
+        asyncio.run(main())
+    else:
+        # Regular pygame loop for non-web environments
+        game = BurgerStacker()
+        game.run()
