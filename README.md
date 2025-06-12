@@ -29,3 +29,9 @@ Follow the installation instructions in [q-generated-files/README.md](./q-genera
 # 6. Game UI
 
 ![final UI](./docs/04-third-prompt/04-final-ui.png)
+
+# 7. Misc
+
+## 7.1 GitHub pages debugging
+
+If the PyGame build is showing a blank screen, access the GitHub page at `#debug` like `https://glennchia.github.io/burger-stacker-game/#debug` and follow the on-screen instructions to click some keys and view the debug logs.
