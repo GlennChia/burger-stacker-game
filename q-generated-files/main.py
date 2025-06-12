@@ -252,6 +252,22 @@ class BurgerStacker:
                                                 y + 10 + key_bg_size//2))
             self.screen.blit(key_surf, key_rect)
 
+    def draw_submit_button(self):
+        """Draw a submit button for mobile users."""
+        button_width = 120
+        button_height = 50
+        button_x = (SCREEN_WIDTH - button_width) // 2
+        button_y = SCREEN_HEIGHT - 80
+
+        # Check if mouse is hovering over this button
+        mouse_pos = pygame.mouse.get_pos()
+        hover = (button_x <= mouse_pos[0] <= button_x + button_width and
+                 button_y <= mouse_pos[1] <= button_y + button_height)
+
+        # Draw the submit button
+        self.draw_modern_button(button_x, button_y, button_width, button_height,
+                              HIGHLIGHT_COLOR, "Submit", hover=hover)
+
     def draw_color_buttons(self):
         """Draw modern color buttons with key labels."""
         button_width = 100
@@ -459,6 +475,8 @@ class BurgerStacker:
             # Mouse click for color buttons
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = pygame.mouse.get_pos()
+
+                # Color buttons
                 button_width = 100
                 button_height = 80
                 spacing = 20
@@ -475,6 +493,18 @@ class BurgerStacker:
                         y <= mouse_pos[1] <= y + button_height and
                         len(self.player_stack) < len(self.target_stack)):
                         self.player_stack.append(color_name)
+
+                # Check if submit button was clicked
+                submit_button_width = 120
+                submit_button_height = 50
+                submit_button_x = (SCREEN_WIDTH - submit_button_width) // 2
+                submit_button_y = SCREEN_HEIGHT - 80
+
+                if (submit_button_x <= mouse_pos[0] <= submit_button_x + submit_button_width and
+                    submit_button_y <= mouse_pos[1] <= submit_button_y + submit_button_height and
+                    self.player_stack):
+                    if len(self.player_stack) == len(self.target_stack):
+                        self.check_match()
 
     def update(self):
         """Update game state."""
@@ -511,6 +541,10 @@ class BurgerStacker:
 
         # Draw color buttons
         self.draw_color_buttons()
+
+        # Draw submit button for mobile users
+        if not self.game_over and self.player_stack:
+            self.draw_submit_button()
 
         # Draw game over screen if game is over
         if self.game_over:
